@@ -1,27 +1,16 @@
 import pandas as pd
-
-
 df = pd.read_csv("campaigns.csv")
-
-
 print(df.head())   
 print(df.info())   
-
-
 df = df.drop_duplicates()                          
 df["clicks"] = df["clicks"].fillna(df["clicks"].median())
 df["clicks"] = df["clicks"].astype(int)             
 df["date"] = pd.to_datetime(df["date"])            
-
 print("\nCleaned data:")
 print(df)
 import sqlite3
-
-
 conn = sqlite3.connect("campaigns.db")
 df.to_sql("campaigns", conn, if_exists="replace", index=False)
-
-
 query1 = """
 SELECT campaign_name, SUM(conversions) AS total_conversions
 FROM campaigns
@@ -40,7 +29,6 @@ GROUP BY channel
 """
 print("\nCost per click by channel:")
 print(pd.read_sql_query(query2, conn))
-
 summary = pd.read_sql_query("""
 SELECT campaign_name, channel,
        SUM(impressions) AS impressions,
@@ -55,20 +43,14 @@ summary["ctr"] = (summary["clicks"] / summary["impressions"] * 100).round(2)
 summary["cpc"] = (summary["spend"] / summary["clicks"]).round(2)
 summary["conversion_rate"] = (summary["conversions"] / summary["clicks"] * 100).round(2)
 summary["cost_per_conversion"] = (summary["spend"] / summary["conversions"]).round(2)
-
 print("\nCampaign metrics:")
 print(summary)
 
 import os
 import json
 from google import genai
-
-
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
-
 data_json = summary.to_json(orient="records")
-
 prompt = f"""You are a marketing analyst. Here is campaign performance data as JSON:
 {data_json}
 
