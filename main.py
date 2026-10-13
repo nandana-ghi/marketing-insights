@@ -1,27 +1,27 @@
 import pandas as pd
 
-# Load the CSV file into a table (called a DataFrame)
+
 df = pd.read_csv("campaigns.csv")
 
-# Look at the data
-print(df.head())   # first 5 rows
-print(df.info())   # column types and missing values
 
-# Clean it
-df = df.drop_duplicates()                           # remove repeated rows
-df["clicks"] = df["clicks"].fillna(df["clicks"].median())  # fill the blank
-df["clicks"] = df["clicks"].astype(int)             # clicks should be whole numbers
-df["date"] = pd.to_datetime(df["date"])             # turn text into real dates
+print(df.head())   
+print(df.info())   
+
+
+df = df.drop_duplicates()                          
+df["clicks"] = df["clicks"].fillna(df["clicks"].median())
+df["clicks"] = df["clicks"].astype(int)             
+df["date"] = pd.to_datetime(df["date"])            
 
 print("\nCleaned data:")
 print(df)
 import sqlite3
 
-# Create (or open) a database file and save our table inside it
+
 conn = sqlite3.connect("campaigns.db")
 df.to_sql("campaigns", conn, if_exists="replace", index=False)
 
-# Query 1: top campaigns by conversions
+
 query1 = """
 SELECT campaign_name, SUM(conversions) AS total_conversions
 FROM campaigns
@@ -32,7 +32,7 @@ LIMIT 5
 print("\nTop campaigns:")
 print(pd.read_sql_query(query1, conn))
 
-# Query 2: average cost per click by channel
+
 query2 = """
 SELECT channel, ROUND(SUM(spend) * 1.0 / SUM(clicks), 2) AS cost_per_click
 FROM campaigns
@@ -63,10 +63,10 @@ import os
 import json
 from google import genai
 
-# Connect using the key stored on your computer
+
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-# Turn our metrics table into JSON text the AI can read
+
 data_json = summary.to_json(orient="records")
 
 prompt = f"""You are a marketing analyst. Here is campaign performance data as JSON:
@@ -85,7 +85,6 @@ response = client.models.generate_content(
     config={"response_mime_type": "application/json"},
 )
 
-# Convert the AI's JSON text into a Python dictionary
 result = json.loads(response.text)
 print("\nAI insights:")
 print(json.dumps(result, indent=2))
